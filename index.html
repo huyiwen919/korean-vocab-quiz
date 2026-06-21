@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>유학생 한국어 능력 테스트</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #ffe6f0, #e6f3ff);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #333;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 520px;
+      background: white;
+      border-radius: 24px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+      text-align: center;
+    }
+
+    h1 {
+      color: #ff6fae;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 25px;
+      line-height: 1.6;
+    }
+
+    button {
+      border: none;
+      border-radius: 18px;
+      padding: 14px 20px;
+      margin: 8px;
+      background: #ff8fc7;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #ff5faa;
+      transform: scale(1.03);
+    }
+
+    .option {
+      display: block;
+      width: 100%;
+      background: #f5f5f5;
+      color: #333;
+      margin: 12px 0;
+    }
+
+    .option:hover {
+      background: #ffe1ef;
+    }
+
+    .question-box {
+      margin-top: 20px;
+    }
+
+    .progress {
+      color: #888;
+      margin-bottom: 15px;
+    }
+
+    .result {
+      font-size: 22px;
+      font-weight: bold;
+      color: #ff6fae;
+      margin: 20px 0;
+    }
+
+    .small {
+      font-size: 14px;
+      color: #777;
+      margin-top: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="start-screen">
+      <h1>유학생 한국어 능력 테스트</h1>
+      <p class="subtitle">
+        한국에서 생활하는 유학생을 위한<br>
+        단어, 문법, 생활 표현 퀴즈입니다.
+      </p>
+      <button onclick="startQuiz()">테스트 시작하기</button>
+      <p class="small">총 10문항 / 객관식 문제</p>
+    </div>
+
+    <div id="quiz-screen" style="display:none;">
+      <div class="progress" id="progress"></div>
+      <h2 id="question"></h2>
+      <div class="question-box" id="options"></div>
+    </div>
+
+    <div id="result-screen" style="display:none;">
+      <h1>테스트 결과</h1>
+      <div class="result" id="score"></div>
+      <p class="subtitle" id="message"></p>
+      <button onclick="restartQuiz()">다시 시작하기</button>
+    </div>
+  </div>
+
+  <script>
+    const quizData = [
+      {
+        question: "'사과'의 뜻은 무엇입니까?",
+        options: ["Apple", "Banana", "Milk", "Water"],
+        answer: "Apple"
+      },
+      {
+        question: "'도서관'은 어디입니까?",
+        options: ["밥을 먹는 곳", "책을 읽는 곳", "운동하는 곳", "쇼핑하는 곳"],
+        answer: "책을 읽는 곳"
+      },
+      {
+        question: "빈칸에 알맞은 말은? 저는 학교에 ___니다.",
+        options: ["갑", "가", "가습", "갑니"],
+        answer: "갑니"
+      },
+      {
+        question: "'비싸다'의 반대말은 무엇입니까?",
+        options: ["싸다", "크다", "작다", "멀다"],
+        answer: "싸다"
+      },
+      {
+        question: "식당에서 계산할 때 가장 자연스러운 표현은?",
+        options: ["계산해 주세요", "잠을 자 주세요", "공부해 주세요", "운동해 주세요"],
+        answer: "계산해 주세요"
+      },
+      {
+        question: "'오늘' 다음 날은 무엇입니까?",
+        options: ["어제", "내일", "작년", "지난주"],
+        answer: "내일"
+      },
+      {
+        question: "한국어로 'Thank you'는?",
+        options: ["안녕하세요", "죄송합니다", "감사합니다", "괜찮아요"],
+        answer: "감사합니다"
+      },
+      {
+        question: "빈칸에 알맞은 조사는? 저는 커피___ 좋아해요.",
+        options: ["을", "를", "이", "가"],
+        answer: "를"
+      },
+      {
+        question: "친구와 약속할 때 쓰는 표현은?",
+        options: ["언제 만날까요?", "얼마예요?", "어디 아파요?", "몇 층이에요?"],
+        answer: "언제 만날까요?"
+      },
+      {
+        question: "'춥다'는 어떤 날씨입니까?",
+        options: ["날씨가 덥다", "날씨가 차갑다", "비가 오다", "바람이 없다"],
+        answer: "날씨가 차갑다"
+      }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+
+    function startQuiz() {
+      document.getElementById("start-screen").style.display = "none";
+      document.getElementById("quiz-screen").style.display = "block";
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const q = quizData[currentQuestion];
+      document.getElementById("progress").innerText =
+        `${currentQuestion + 1} / ${quizData.length}`;
+      document.getElementById("question").innerText = q.question;
+
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+
+      q.options.forEach(option => {
+        const btn = document.createElement("button");
+        btn.className = "option";
+        btn.innerText = option;
+        btn.onclick = () => selectAnswer(option);
+        optionsDiv.appendChild(btn);
+      });
+    }
+
+    function selectAnswer(selected) {
+      if (selected === quizData[currentQuestion].answer) {
+        score++;
+      }
+
+      currentQuestion++;
+
+      if (currentQuestion < quizData.length) {
+        showQuestion();
+      } else {
+        showResult();
+      }
+    }
+
+    function showResult() {
+      document.getElementById("quiz-screen").style.display = "none";
+      document.getElementById("result-screen").style.display = "block";
+
+      document.getElementById("score").innerText =
+        `점수: ${score} / ${quizData.length}`;
+
+      let message = "";
+
+      if (score >= 9) {
+        message = "A등급: 한국 생활 고수입니다! 아주 잘했어요.";
+      } else if (score >= 7) {
+        message = "B등급: 한국 생활에 잘 적응하고 있어요.";
+      } else if (score >= 5) {
+        message = "C등급: 조금만 더 공부하면 더 좋아질 수 있어요.";
+      } else {
+        message = "D등급: 기초 단어와 표현을 다시 복습해 보세요.";
+      }
+
+      document.getElementById("message").innerText = message;
+    }
+
+    function restartQuiz() {
+      currentQuestion = 0;
+      score = 0;
+      document.getElementById("result-screen").style.display = "none";
+      document.getElementById("start-screen").style.display = "block";
+    }
+  </script>
+</body>
+</html>
